@@ -50,10 +50,12 @@ Run from the project root:
 `.env` and `secrets/` are excluded from Git.
 
 ## 5. Checking everything works
-
+ 
 - `docker ps` — all containers should show `Up`.
 - `docker logs <name>` — check for errors.
 - Open the website and Adminer to confirm the database and content load.
 - In WordPress admin, go to Settings → Redis and confirm it shows Connected.
-
-If a container shows as `Restarting` or `Exited`, check its logs for details.
+- Connect via FTP to `kroyo-di.42.fr` and confirm you can browse the
+  WordPress files.
+- Open `http://kroyo-di.42.fr` and confirm the static showcase page loads.
+- Open Portainer and confirm all containers show as `running`.

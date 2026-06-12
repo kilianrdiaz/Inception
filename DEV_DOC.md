@@ -30,7 +30,7 @@ and entrypoint scripts.
 
 ## 2. Prerequisites
 
-- A Linux VM with Docker Engine and Docker Compose.
+- A Linux VM with Docker and Docker Compose.
 - `sudo` access, needed to manage data directories under `/home/kroyo-di/data`.
 - `/etc/hosts`:
   ```
@@ -98,7 +98,7 @@ docker network ls
 docker network inspect srcs_inception-network
 ```
 
-Only NGINX, the static site, Adminer, Redis, FTP, and Portainer publish ports
+NGINX, the static site, Adminer, Redis, FTP, and Portainer publish ports
 to the host. MariaDB and WordPress are only reachable inside the Docker
 network.
 
@@ -112,14 +112,3 @@ network.
 Both are Docker named volumes using a bind driver. Data persists across
 `make down`/`make up` and is only removed by `make fclean` or `make re`.
 
-## 7. Troubleshooting
-
-- **MariaDB restart loop or access denied errors**: leftover data from a
-  failed initialization. Run `make fclean` to wipe it.
-- **403 or permission denied on WordPress files**: ownership of the volume was
-  changed by the FTP container. Restart the WordPress container to fix
-  permissions.
-- **`make fclean` asks for the sudo password**: expected, since some files are
-  owned by users inside the containers.
-- **Redis shows unreachable in WordPress**: check the Redis configuration and
-  the connection settings in `wp-config.php`.
