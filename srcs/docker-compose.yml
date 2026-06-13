@@ -1,0 +1,155 @@
+services:
+  mariadb:
+    build: 
+      context: requirements/mariadb
+    image: mariadb:inception
+    container_name: mariadb
+    networks:
+      - inception-network
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+    restart: always
+
+  wordpress:
+    build:
+      context: requirements/wordpress
+    image: wordpress:inception
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    networks:
+      - inception-network
+    volumes:
+      - wordpress_data:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD_FILE: /run/secrets/db_password
+      WORDPRESS_TABLE_PREFIX: wp_
+    secrets:
+      - db_password
+    restart: always
+
+  adminer:
+    build:
+      context: requirements/adminer
+    image: adminer:inception
+    container_name: adminer
+    depends_on:
+      - mariadb
+    networks:
+      - inception-network
+    ports:
+      - "8080:8080"
+    restart: always
+
+  static:
+    build:
+      context: requirements/static
+    image: static:inception
+    container_name: static
+    networks:
+      - inception-network
+    ports:
+      - "80:80"
+    restart: always
+
+  redis:
+    build:
+      context: requirements/redis
+    image: redis:inception
+    container_name: redis
+    networks:
+      - inception-network
+    ports:
+      - "6379:6379"
+    restart: always
+
+  ftp:
+    build:
+      context: requirements/ftp
+    image: ftp:inception
+    container_name: ftp
+    depends_on:
+      - wordpress
+    networks:
+      - inception-network
+    ports:
+      - "21:21"
+      - "20:20"
+      - "21100-21110:21100-21110"
+    volumes:
+      - wordpress_data:/var/www/html
+    environment:
+      FTP_USER: ${FTP_USER}
+      FTP_PASSWORD_FILE: /run/secrets/ftp_password
+    secrets:
+      - ftp_password
+    restart: always
+
+  portainer:
+    build:
+      context: requirements/portainer
+    image: portainer:inception
+    container_name: portainer
+    networks:
+      - inception-network
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+  nginx:
+    build:
+      context: requirements/nginx
+    image: nginx:inception
+    container_name: nginx
+    ports:
+      - "443:443"
+    depends_on:
+      - wordpress
+    networks:
+      - inception-network
+    volumes:
+      - wordpress_data:/var/www/html
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+    restart: always
+
+networks:
+  inception-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    name: mariadb_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/mariadb
+  wordpress_data:
+    name: wordpress_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/wordpress
+
+secrets:
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  db_password:
+    file: ../secrets/db_password.txt
+  ftp_password:
+    file: ../secrets/ftp_password.txt
