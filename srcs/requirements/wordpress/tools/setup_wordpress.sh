@@ -82,6 +82,10 @@ echo "Waiting for MariaDB to be ready..."
         --user_pass="${WP_USER_PASSWORD}" \
         --role=subscriber
 
+    echo "Installing Redis Object Cache plugin..."
+    wp plugin install redis-cache --activate --allow-root --path="$WP_PATH"
+    wp redis enable --allow-root --path="$WP_PATH"
+
     echo "WordPress setup complete."
 else
     echo "WordPress already initialized, skipping setup."
