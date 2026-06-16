@@ -13,8 +13,14 @@ RUN apt-get update && apt-get install -y \
   php8.2-zip \
   wget \
   curl \
+  default-mysql-client \
   && ln -s /usr/sbin/php-fpm8.2 /usr/local/bin/php-fpm \
   && rm -rf /var/lib/apt/lists/*
+
+# Download WP-CLI
+RUN wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    -O /usr/local/bin/wp \
+    && chmod +x /usr/local/bin/wp
 
 # Create WordPress directory
 WORKDIR /var/www/html
